@@ -1,0 +1,16 @@
+[package]
+name = 'property'
+version = '1.0.0'
+
+[addresses]
+property_addr = "a3e8431331156c99c7a9a1f41d6d20f071a6807e5b255cf6698dd964261d97d5"
+
+[dependencies.AptosFramework]
+git = 'https://github.com/aptos-labs/aptos-core.git'
+rev = 'main'
+subdir = 'aptos-move/framework/aptos-framework'
+
+[dependencies.AptosTokenObjects]
+git = 'https://github.com/aptos-labs/aptos-core.git'
+rev = 'main'
+subdir = 'aptos-move/framework/aptos-token-objects'
