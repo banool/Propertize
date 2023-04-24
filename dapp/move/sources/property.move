@@ -1,4 +1,4 @@
-module property_addr::property {
+module propertize_addr::property {
     use std::option::{Self, Option};
     use std::signer;
     use std::string::{Self, String};
