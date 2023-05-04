@@ -17,6 +17,7 @@ module propertize_addr::property {
         //ID?
         location: String,
         living_area: Option<Object<Living_area>>,
+        //living_area: Option<Object<Living_area>>,
         //bedrooms: Option<Object<Bedroom>>,
         //bathrooms: Option<Object<Bathroom>>,
         //energy_score: Option<Object<Energy_score>>,
@@ -186,7 +187,9 @@ module propertize_addr::property {
         token::set_description(&property.mutator_ref, description);
     }
 
+
     // TODO: add access control
     // TODO: add error handling
-    // TODO: add unit testing
+    // TODO: add missing setters (set_name; set_uri, ...)
+    // TODO: add unit testing (mock testing)
 }
