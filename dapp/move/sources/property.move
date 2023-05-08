@@ -2,12 +2,17 @@ module propertize_addr::property {
     use std::option::{Self, Option};
     use std::signer;
     use std::string::{Self, String};
-
     use aptos_framework::object::{Self, ConstructorRef, Object};
-
     use aptos_token_objects::collection;
     use aptos_token_objects::token;
 
+    //
+    // Errors
+    //
+
+    //
+    // Structs
+    //
     struct OnChainConfig has key {
         collection: String,
     }
@@ -44,7 +49,19 @@ module propertize_addr::property {
     //    price_modifier: u64,
     //}
 
-    fun init_module(account: &signer) {
+    //
+    // Asserts
+    //
+
+    //
+    // initialize function (not entry)
+    //
+    /**
+    * Initializes property module
+    * @param account - account signer executing the function
+    * for params, refer to: [object-token-module]
+    **/
+    fun init_property(account: &signer) {
         let collection = string::utf8(b"Property");
         collection::create_unlimited_collection(
             account,
@@ -60,6 +77,10 @@ module propertize_addr::property {
         move_to(account, on_chain_config);
     }
 
+    /// Creation function
+    /**
+    * serves as an entry function for creating property objects.
+    **/
     fun create(
         creator: &signer,
         description: String,
@@ -77,7 +98,7 @@ module propertize_addr::property {
         )
     }
 
-    // Creation procedures
+    /// Creation procedures
 
     public fun create_property(
         creator: &signer,
@@ -137,7 +158,10 @@ module propertize_addr::property {
         object::address_to_object(signer::address_of(&token_signer))
     }
 
-    // Transfer wrappers
+    /// Transfer wrappers
+    /**
+    * add the created characteristic to the corresponding property.
+    **/
 
     public fun property_set_living_area(owner: &signer, property: Object<Property>, living_area: Object<Living_area>) acquires Property {
         let property_obj = borrow_global_mut<Property>(object::object_address(&property));
@@ -157,8 +181,9 @@ module propertize_addr::property {
     // public fun downgrade_living_area()
     // IS IT RELEVANT?
 
+    //
     // Entry functions
-
+    //
     entry fun mint_property(
         account: &signer,
         description: String,
