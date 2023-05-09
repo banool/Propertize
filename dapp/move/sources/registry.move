@@ -1,5 +1,4 @@
 module propertize_addr::registry{
-    use aptos_std::table::Table;
     use std::signer;
     use aptos_framework::event;
     use std::string::String;
@@ -19,9 +18,15 @@ module propertize_addr::registry{
     //
     // Structs
     //
+    struct RegisteredProperty has drop, store {
+        property_address: address,
+        timestamp_seconds: u64,
+    }
+
     struct Registry has key {
-        properties_list: Table<Property, address>,
+        properties_list: Table<address, RegisteredProperty>,
         // signer_capability: account::SignerCapability,
+
     }
 
     //
@@ -31,7 +36,7 @@ module propertize_addr::registry{
         account_address: address,
     ) {
         // assert that `Registry` exists
-        assert!(table::exists<Registry>(account_address), ERROR_REGISTERY_DOES_NOT_EXIST);
+        //assert!(table::exists<Registry>(account_address), ERROR_REGISTERY_DOES_NOT_EXIST);
     }
 
     public fun assert_registry_does_not_exist(
@@ -39,6 +44,16 @@ module propertize_addr::registry{
     ) {
         // TODO: assert that `Registry` does not exist
     }
+
+    public fun assert_lengths_are_equal(
+        addresses: vector<address>,
+        property_addresses: vector<address>,
+        timestamps: vector<u64>
+    ) {
+        // TODO: assert that the lengths of `addresses`, `property_addresses`, and `timestamps` are all equal
+    }
+
+    public fun assert_property_address_exists(){}
 
     //
     // Entry functions
@@ -50,14 +65,16 @@ module propertize_addr::registry{
     **/
     public entry fun Init_registry(
         account: &signer,
+        property: address,
     ) {
-        assert_registry_does_not_exist(account);
+        //assert_registry_does_not_exist(account);
 
-        // Instantiate resource 
+
+        // Instantiate `Registry` resource 
         let new_registry = Registry {
             properties_list: table::new(),
         };
         // move Registry resource under the signer account
-        move_to(account_address, new_registry);
+        move_to(account, new_registry);
     }
 }

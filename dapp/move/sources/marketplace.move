@@ -14,6 +14,10 @@ module propertize_addr::marketplace {
     // Errors
     //
 
+    //
+    // Asserts
+    //
+
     // Getters, use #[view]
 
     struct SaleList has key {
