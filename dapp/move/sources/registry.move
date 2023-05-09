@@ -2,7 +2,7 @@ module propertize_addr::registry{
     use std::signer;
     use aptos_framework::event;
     use std::string::String;
-    use aptos_std::table::Table;
+    use aptos_std::table::{Self, Table};
     use std::error;
     use aptos_framework::account;
     use aptos_framework::object::{Self, ConstructorRef, Object};
@@ -19,8 +19,9 @@ module propertize_addr::registry{
     // Structs
     //
     struct RegisteredProperty has drop, store {
-        property_address: address,
+        property_address: address,  // should not be promped by the user
         timestamp_seconds: u64,
+        // TODO: add event
     }
 
     struct Registry has key {
@@ -69,12 +70,29 @@ module propertize_addr::registry{
     ) {
         //assert_registry_does_not_exist(account);
 
-
         // Instantiate `Registry` resource 
         let new_registry = Registry {
             properties_list: table::new(),
         };
         // move Registry resource under the signer account
         move_to(account, new_registry);
+    }
+
+    public fun register_property(
+        account: &signer,
+        property_address: address
+    ) {
+        // gets the signer address
+        let signer_address = signer::address_of(account);
+
+        let registry = borrow_global_mut<Registry>(signer_address);
+
+        let new_property = RegisteredProperty {
+            property_address: property_address/*verify the use*/,
+            timestamp_seconds: 0, /*must correspond to the current time*/
+        };    
+
+        // adds the new property into the registry
+        table::upsert(&mut registry.properties_list, signer_address, new_property);    
     }
 }

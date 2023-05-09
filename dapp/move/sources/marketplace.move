@@ -4,7 +4,7 @@ module propertize_addr::marketplace {
     use std::signer;
     use aptos_framework::event;
     use std::string::String;
-    use aptos_std::table::Table;
+    use aptos_std::table::{Self, Table};
     use std::error;
     use aptos_framework::account;
     use aptos_framework::object::{Self, ConstructorRef, Object};

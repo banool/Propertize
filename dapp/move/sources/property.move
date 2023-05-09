@@ -212,9 +212,27 @@ module propertize_addr::property {
         token::set_description(&property.mutator_ref, description);
     }
 
+    //
+    // view functions
+    //
+    #[view]
+    inline fun get_property(
+        creator: &address,
+        collection: &String,
+        name: &String
+    ): (Object<Property>, &Property) {
+        let token_address = token::create_token_address(
+            creator,
+            collection,
+            name
+        );
+        (object::address_to_object<Property>(token_address), borrow_global<Property>(token_address))
+    }
+
 
     // TODO: add access control
     // TODO: add error handling
     // TODO: add missing setters (set_name; set_uri, ...)
     // TODO: add unit testing (mock testing)
+    
 }
