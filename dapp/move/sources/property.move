@@ -6,6 +6,8 @@ module propertize_addr::property {
     use aptos_token_objects::collection;
     use aptos_token_objects::token;
 
+    friend propertize_addr::registry;
+
     //
     // Errors
     //
@@ -42,7 +44,7 @@ module propertize_addr::property {
         value: u64,
         update: Option<Object<Update>>,
     }
-
+    
     //#[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     //struct Score has key {
     //    overall_score: u64,
@@ -227,6 +229,20 @@ module propertize_addr::property {
             name
         );
         (object::address_to_object<Property>(token_address), borrow_global<Property>(token_address))
+    }
+
+    // for registry
+    public fun get_property_address(
+        creator: &address,
+        collection: &String,
+        name: &String
+    ): (address) {
+        let new_token_address = token::create_token_address(
+            creator,
+            collection,
+            name
+        );
+        (new_token_address)
     }
 
 
