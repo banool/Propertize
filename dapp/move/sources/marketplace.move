@@ -55,7 +55,7 @@ module propertize_addr::marketplace {
 
     /// swapping nft for money
     /// TODO: buy a property. Verify func logic
-    public fun buy_property(
+    public entry fun buy_property(
         from: &signer,
         object: Object<Property>,
         to: address,

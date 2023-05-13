@@ -87,7 +87,7 @@ module propertize_addr::registry{
         move_to(account, new_registry);
     }
 
-    public fun register_property(
+    public entry fun register_property(
         account: &signer,
         property_address: address
     ) acquires Registry {
@@ -112,7 +112,7 @@ module propertize_addr::registry{
     * TODO: check `object` module to prevent writing alrdy existing lines.
     * NOTES: maybe it is useless to do so anyways cuz there will always be the explorer.
     */
-    public(friend) fun transfer_property_ownership(
+    public(friend) entry fun transfer_property_ownership(
     /// TODO: transfer vs linear transfer?
         from: &signer,
         object: Object<Property>,
