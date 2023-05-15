@@ -3,7 +3,7 @@ name = 'propertize'
 version = '0.0.0'
 
 [addresses]
-propertize_addr = "a3e8431331156c99c7a9a1f41d6d20f071a6807e5b255cf6698dd964261d97d5"
+propertize_addr = "e5b3c9b44e50d066eb405079c55b9740fcc37fddd2bf305ee50a0c5da03d2741"
 
 [dependencies.AptosFramework]
 git = 'https://github.com/aptos-labs/aptos-core.git'

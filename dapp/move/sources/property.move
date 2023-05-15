@@ -218,31 +218,17 @@ module propertize_addr::property {
     // view functions
     //
     #[view]
-    inline fun get_property(
-        creator: &address,
-        collection: &String,
-        name: &String
-    ): (Object<Property>, &Property) {
+    fun view_property(
+        creator: address,
+        collection: String,
+        name: String
+    ): Property acquires Property {
         let token_address = token::create_token_address(
-            creator,
-            collection,
-            name
+            &creator,
+            &collection,
+            &name
         );
-        (object::address_to_object<Property>(token_address), borrow_global<Property>(token_address))
-    }
-
-    // for registry
-    public fun get_property_address(
-        creator: &address,
-        collection: &String,
-        name: &String
-    ): (address) {
-        let new_token_address = token::create_token_address(
-            creator,
-            collection,
-            name
-        );
-        (new_token_address)
+        move_from<Property>(token_address)
     }
 
 
