@@ -12,7 +12,7 @@ import {
 } from "@chakra-ui/react"
 import { ColorModeSwitcher } from "./ColorModeSwitcher"
 import { ConnectComponent } from "./ConnectComponent"
-import FetchRegistryComponent from "./FetchRegistryComponent"
+import { RegistryComponent } from "./RegistryComponent"
 
 export const App = () => (
   <ChakraProvider theme={theme}>
@@ -28,7 +28,7 @@ export const App = () => (
               </Text>
             </Alert>
           <ConnectComponent />
-          <FetchRegistryComponent />
+          <RegistryComponent />
         </VStack>
       </Grid>
     </Box>
