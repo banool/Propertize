@@ -1,31 +1,65 @@
-import { Provider, Network } from "aptos";
 import { useWallet } from "@aptos-labs/wallet-adapter-react";
 import { useState, useEffect } from "react";
-import { Box, Button, Center } from '@chakra-ui/react';
+import {  
+  Button, 
+  Center, 
+  ButtonGroup,
+  List,
+  ListItem,
+  Link,
+  Stack
+} from '@chakra-ui/react';
+import { MODULE_ADDRESS, PROVIDER } from './constants';
 
-const provider = new Provider(Network.DEVNET);
-const { account, signAndSubmitTransaction } = useWallet();
-const moduleAddress = "0xe5b3c9b44e50d066eb405079c55b9740fcc37fddd2bf305ee50a0c5da03d2741";
+type RegisteredProperty = {
+  property_address: string;
+  owner_address: string;
+  timestamp_seconds: number; //TODO: enforce this to uint64
+};
+
 
 export const RegistryComponent = () => {
   // Component logic and state can be defined here
-  
+  const { account, signAndSubmitTransaction } = useWallet();
+
   //
-  // State
+  // States
   //
   const [accountHasRegistry, setaccountHasRegistry] = useState<boolean>(false);
+  const [propertyAdded, setPropertyAdded] = useState<boolean>(false);
+  const [registeredProperties, setRegisteredProperties] = useState<RegisteredProperty[]>([]);
   /// spinner
   const [transactionInProgress, setTransactionInProgress] = useState<boolean>(false);
 
   const fetchRegistry = async () => {
     if (!account) return [];
     try {
-      const RegistryResource = await provider.getAccountResource(
+      const RegistryResource = await PROVIDER.getAccountResource(
         account?.address,
-        `${moduleAddress}::registry::Registry`,
+        `${MODULE_ADDRESS}::registry::Registry`,
       )
-      setaccountHasRegistry(RegistryResource !== null);
-    } catch (e: any) {
+      setaccountHasRegistry(true);
+
+      // registry table handle
+      const tableHandle = (RegistryResource as any).data.properties.handle;
+      
+      // Table struct from the module
+      // properties_list: Table<address, RegisteredProperty>
+      let registeredProperties = [];
+      let address = "address"
+
+      const tableItem = {
+        key_type: "string",
+        value_type: `${MODULE_ADDRESS}::registry::registeredProperty`,
+        key: `${address}`,
+      };
+      const registeredProperty = await PROVIDER.getTableItem(tableHandle, tableItem);
+      registeredProperties.push(registeredProperty);
+      
+      // set properties in local state
+      setRegisteredProperties(registeredProperties);
+    } 
+    catch (e: any) {
       setaccountHasRegistry(false);
     }
   };
@@ -49,7 +83,34 @@ export const RegistryComponent = () => {
     // transaction payload to be submitted
     const payload = {
         type: "entry_function_payload",
-        function: '${moduleAddress}::registry::Init_registry',
+        function: `${MODULE_ADDRESS}::registry::Init_registry`,
+        type_arguments: [],
+        arguments: [],
+    };
+    try {
+        // sign and submit tx to chain
+        const response = await signAndSubmitTransaction(payload);
+        
+        // wait for transaction
+        await PROVIDER.waitForTransaction(response.hash);
+        setaccountHasRegistry(true);
+        
+    } catch (error: any) {
+      setaccountHasRegistry(false); 
+    } finally {
+      setTransactionInProgress(false);
+    }
+  }
+
+  /// registerProperty
+  const registerProperty = async () => {
+    if(!account) return [];
+    setTransactionInProgress(true);
+
+    // transaction payload to be submitted
+    const payload = {
+        type: "entry_function_payload",
+        function: `${MODULE_ADDRESS}::registry::register_property`,
         type_arguments: [],
         arguments: [],
     };
@@ -57,10 +118,10 @@ export const RegistryComponent = () => {
         // sign and submit tx to chain
         const response = await signAndSubmitTransaction(payload);
         // wait for transaction
-        await provider.waitForTransaction(response.hash);
-        setaccountHasRegistry(true);
+        await PROVIDER.waitForTransaction(response.hash);
+        setPropertyAdded(true);
     } catch (error: any) {
-      setaccountHasRegistry(false); 
+      setPropertyAdded(false); 
     } finally {
       setTransactionInProgress(false);
     }
@@ -72,18 +133,58 @@ export const RegistryComponent = () => {
   // TODO: update UI
   return (
     // TSX markup defines the component's UI
-    <div>
-      {!accountHasRegistry && (
-      <Center marginTop="2rem">
-        <Box>
-          <Button onClick={addNewRegistry} height="40px">
-            Add new registry
+    <Center>
+      {!accountHasRegistry ? (
+        <ButtonGroup>
+          <Button
+          onClick={addNewRegistry}
+          variant='outline'
+          _hover={{ backgroundColor: "teal" }}
+        >
+          Create Registry
+        </Button>
+          <Button
+            onClick={registerProperty}
+          > 
+            Register Property
           </Button>
-        </Box>
-      </Center>
-      )}
-    </div>
+        </ButtonGroup>
+      ) : (
+            // TODO: Generic error caused by registered properties. check payload
+            registeredProperties && (
+              <Stack>
+                <Button
+                  /*onClick={}*/
+                  _hover={{ backgroundColor: "teal" }}
+                >
+                  Manage Registry
+                </Button>
+                <List>
+                    size="sm" borderWidth="1px" borderColor="gray.200" borderRadius="md" spacing={2}
+                    {
+                      registeredProperties.map((registeredProperty) => (
+                        <ListItem 
+                        key={registeredProperty.owner_address}
+                        title={registeredProperty.property_address}
+                        >
+                          <Link 
+                          href={`https://explorer.aptoslabs.com/account/`} /* TODO: add address */ 
+                          isExternal
+                          >
+                            view
+                          </Link>
+                        </ListItem>
+                      ))
+                    }
+                  </List>
+              </Stack>
+            )
+          )
+      }
+    </Center>
+    
   );
+  /* TODO: include this in a seperate box*/
 };
   
   export default RegistryComponent;

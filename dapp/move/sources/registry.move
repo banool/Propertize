@@ -75,7 +75,6 @@ module propertize_addr::registry{
     **/
     public entry fun Init_registry(
         account: &signer,
-        property: address,
     ) {
         //assert_registry_does_not_exist(account);
 
