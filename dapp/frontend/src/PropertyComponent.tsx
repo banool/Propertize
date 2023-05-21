@@ -4,6 +4,10 @@ import { Spin } from 'antd';
 import { Box, Button, Center, Flex } from '@chakra-ui/react';
 import { MODULE_ADDRESS, PROVIDER } from './constants';
 
+type Property = {
+  location: string;
+  living_area: string;
+}
 
 export const PropertyComponent = () => {
   // Component logic and state can be defined here
@@ -12,30 +16,17 @@ export const PropertyComponent = () => {
   //
   // State
   //
+  const [showForm, setShowForm] = useState(false);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [newProperty, setNewProperty] = useState<string>("");
   const [accountHasProperty, setaccountHasProperty] = useState<boolean>(false);
-  //const [properties, setProperties] = useState<Property[]>([]);
   /// spinner
   const [transactionInProgress, setTransactionInProgress] = useState<boolean>(false);
-
-  const fetchProperty = async () => {
-    if (!account) return [];
-    try {
-      const PropertyResource = await PROVIDER.getAccountResource(
-        account?.address,
-        `${MODULE_ADDRESS}::property::Property`,
-      )
-      setaccountHasProperty(PropertyResource !== null);
-    } catch (e: any) {
-      setaccountHasProperty(false);
-    }
-  };
-
+  
   //
   // Effects
   //
-  useEffect(() => {
-    fetchProperty();
-  }, [account?.address, fetchProperty]);
+
   
   //
   // Functions
@@ -51,7 +42,12 @@ export const PropertyComponent = () => {
         type: "entry_function_payload",
         function: `${MODULE_ADDRESS}::property::mint_property`,
         type_arguments: [],
-        arguments: [],
+        arguments: [
+          'a',
+          'b',
+          'c',
+          'd'
+        ],
     };
     try {
         // sign and submit tx to chain

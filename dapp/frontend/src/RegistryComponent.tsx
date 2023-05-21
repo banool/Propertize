@@ -7,14 +7,21 @@ import {
   List,
   ListItem,
   Link,
-  Stack
+  Stack,
+  Box,
+  InputGroup,
+  Input,
+  InputRightElement,
+  Text,
+  HStack
 } from '@chakra-ui/react';
 import { MODULE_ADDRESS, PROVIDER } from './constants';
+import { Spin } from 'antd';
 
 type RegisteredProperty = {
   property_address: string;
   owner_address: string;
-  timestamp_seconds: number; //TODO: enforce this to uint64
+  timestamp_seconds: number; //TODO: enforce this to be uint64
 };
 
 
@@ -25,11 +32,17 @@ export const RegistryComponent = () => {
   //
   // States
   //
-  const [accountHasRegistry, setaccountHasRegistry] = useState<boolean>(false);
+  const [accountHasRegistry, setAccountHasRegistry] = useState<boolean>(false);
   const [propertyAdded, setPropertyAdded] = useState<boolean>(false);
   const [registeredProperties, setRegisteredProperties] = useState<RegisteredProperty[]>([]);
+  const [newRegisterProperty, setNewRegisterProperty] = useState<string>("");
   /// spinner
   const [transactionInProgress, setTransactionInProgress] = useState<boolean>(false);
+
+  const onRegisterProperty = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    setNewRegisterProperty(value);
+  }
 
   const fetchRegistry = async () => {
     if (!account) return [];
@@ -38,7 +51,7 @@ export const RegistryComponent = () => {
         account?.address,
         `${MODULE_ADDRESS}::registry::Registry`,
       )
-      setaccountHasRegistry(true);
+      setAccountHasRegistry(true);
 
       // registry table handle
       const tableHandle = (RegistryResource as any).data.properties.handle;
@@ -46,21 +59,24 @@ export const RegistryComponent = () => {
       // Table struct from the module
       // properties_list: Table<address, RegisteredProperty>
       let registeredProperties = [];
-      let address = "address"
+      let counter = 1;
 
-      const tableItem = {
-        key_type: "string",
-        value_type: `${MODULE_ADDRESS}::registry::registeredProperty`,
-        key: `${address}`,
-      };
-      const registeredProperty = await PROVIDER.getTableItem(tableHandle, tableItem);
-      registeredProperties.push(registeredProperty);
+      while (counter <= 3){
+        const tableItem = {
+          key_type: "address",
+          value_type: `${MODULE_ADDRESS}::registry::registeredProperty`,
+          key: `${counter}`,
+        };
+        const registeredProperty = await PROVIDER.getTableItem(tableHandle, tableItem);
+        registeredProperties.push(registeredProperty);
+        counter++;
+      }
       
       // set properties in local state
       setRegisteredProperties(registeredProperties);
     } 
     catch (e: any) {
-      setaccountHasRegistry(false);
+      //setAccountHasRegistry(false);
     }
   };
 
@@ -93,35 +109,55 @@ export const RegistryComponent = () => {
         
         // wait for transaction
         await PROVIDER.waitForTransaction(response.hash);
-        setaccountHasRegistry(true);
+        setAccountHasRegistry(true);
         
     } catch (error: any) {
-      setaccountHasRegistry(false); 
+      //setAccountHasRegistry(false); 
     } finally {
       setTransactionInProgress(false);
     }
   }
 
   /// registerProperty
-  const registerProperty = async () => {
-    if(!account) return [];
+  const onPropertyRegistered = async () => {
+    // check for connected account
+    if (!account) return;
     setTransactionInProgress(true);
 
-    // transaction payload to be submitted
+    // tx payload to be submited
     const payload = {
-        type: "entry_function_payload",
-        function: `${MODULE_ADDRESS}::registry::register_property`,
-        type_arguments: [],
-        arguments: [],
+      type: "entry_function_payload",
+      function: `${MODULE_ADDRESS}::registry::register_property`,
+      type_arguments: [],
+      arguments: [newRegisterProperty],
+    }
+
+    // object to be stored into local state
+    const newRegisterPropertyToPush = {
+      property_address: newRegisterProperty,
+      owner_address: account.address,
+      timestamp_seconds: 0, // TODO: get timestamp
     };
+
     try {
-        // sign and submit tx to chain
-        const response = await signAndSubmitTransaction(payload);
-        // wait for transaction
-        await PROVIDER.waitForTransaction(response.hash);
-        setPropertyAdded(true);
+      // sign and submit transaction to chain
+      const response = await signAndSubmitTransaction(payload);
+      // wait for transaction
+      await PROVIDER.waitForTransaction(response.hash);
+
+      // create new array based on current state
+      let newRegisterProperties = [...registeredProperties];
+
+      // add item to the array
+      newRegisterProperties.push(newRegisterPropertyToPush);
+
+      // set state
+      setRegisteredProperties(newRegisterProperties);
+
+      // clear input
+      setNewRegisterProperty("");
     } catch (error: any) {
-      setPropertyAdded(false); 
+      console.log("error", error);
     } finally {
       setTransactionInProgress(false);
     }
@@ -133,7 +169,8 @@ export const RegistryComponent = () => {
   // TODO: update UI
   return (
     // TSX markup defines the component's UI
-    <Center>
+    <Spin spinning={transactionInProgress}>
+      <Center>
       {!accountHasRegistry ? (
         <ButtonGroup>
           <Button
@@ -143,45 +180,61 @@ export const RegistryComponent = () => {
         >
           Create Registry
         </Button>
-          <Button
-            onClick={registerProperty}
-          > 
-            Register Property
-          </Button>
         </ButtonGroup>
       ) : (
-            // TODO: Generic error caused by registered properties. check payload
+        // TODO: why registeredProperties[] remains null?
             registeredProperties && (
               <Stack>
-                <Button
-                  /*onClick={}*/
-                  _hover={{ backgroundColor: "teal" }}
-                >
-                  Manage Registry
-                </Button>
-                <List>
-                    size="sm" borderWidth="1px" borderColor="gray.200" borderRadius="md" spacing={2}
+                <List> 
                     {
                       registeredProperties.map((registeredProperty) => (
                         <ListItem 
                         key={registeredProperty.owner_address}
                         title={registeredProperty.property_address}
                         >
-                          <Link 
-                          href={`https://explorer.aptoslabs.com/account/`} /* TODO: add address */ 
-                          isExternal
-                          >
-                            view
-                          </Link>
+                          <HStack>
+                            <Text>
+                              {registeredProperty.property_address}
+                            </Text>
+                            <Link 
+                            href={`https://explorer.aptoslabs.com/account/${registeredProperty.property_address}/`}
+                            isExternal
+                            >
+                              view on Explorer
+                            </Link>
+                          </HStack>
                         </ListItem>
                       ))
                     }
                   </List>
+                  <Box>
+                    <Text>Property:</Text>
+                    <InputGroup size='md'>
+                      <Input
+                        pr='4.5rem'
+                        onChange={(event) => onRegisterProperty(event)}
+                        placeholder='Enter property address'
+                        value={newRegisterProperty}
+                        //type={}
+                      />
+                      <InputRightElement width='4.5rem'>
+                        <Button
+                          h='1.75rem' 
+                          size='sm'
+                          onClick={onPropertyRegistered}
+                        >
+                          Register
+                        </Button>
+                      </InputRightElement>
+                    </InputGroup>
+                  </Box>
               </Stack>
             )
           )
       }
-    </Center>
+      </Center>
+    </Spin>
+    
     
   );
   /* TODO: include this in a seperate box*/
