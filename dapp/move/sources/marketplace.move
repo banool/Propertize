@@ -1,5 +1,8 @@
 // TODO: difference between use and friend?
 
+// One thing that might be helpful to look at is this example marketplace code
+// one of us recently wrote: https://github.com/aptos-labs/aptos-core/pull/8112.
+
 module propertize_addr::marketplace {
     use std::signer;
     use aptos_framework::event;
@@ -32,7 +35,7 @@ module propertize_addr::marketplace {
         new_owner: address,
         property: Object<Property>,
         timestamp: u64, // TODO: make use of time framework
-    } 
+    }
 
     //
     // Entry functions

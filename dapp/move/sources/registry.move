@@ -8,19 +8,20 @@ module propertize_addr::registry{
     use aptos_framework::object::{Self, ConstructorRef, Object};
     use propertize_addr::property::{Property};
 
-    friend propertize_addr::marketplace; 
+    friend propertize_addr::marketplace;
 
     //
     // Errors
     //
     const ERROR_REGISTRY_EXISTS: u64 = 0;
     const ERROR_REGISTERY_DOES_NOT_EXIST: u64 = 1;
-    
+
     //
     // Structs
     //
     /*consider removing `drop`*/
     struct RegisteredProperty has drop, store {
+        // Instead of an address for property this could just be Object<Property>
         property_address: address,  // TODO: should not be promped by the user
         owner_address: address, // to be updated everytime ownership is changed
         timestamp_seconds: u64,
@@ -71,14 +72,14 @@ module propertize_addr::registry{
     /**
     * Initializes registry module
     * @param account - account signer executing the function
-    * 
+    *
     **/
     public entry fun Init_registry(
         account: &signer,
     ) {
         //assert_registry_does_not_exist(account);
 
-        // Instantiate `Registry` resource 
+        // Instantiate `Registry` resource
         let new_registry = Registry {
             properties_list: table::new(),
         };
@@ -99,15 +100,15 @@ module propertize_addr::registry{
             property_address: property_address/*verify the use*/,
             owner_address: signer_address,
             timestamp_seconds: 0, /*must correspond to the current time*/
-        };    
+        };
 
         // adds the new property into the registry
-        table::upsert(&mut registry.properties_list, signer_address, new_property);    
+        table::upsert(&mut registry.properties_list, signer_address, new_property);
     }
 
-    /* 
+    /*
     * ownership transfer
-    * this will also require updating `RegisteredProperty`? 
+    * this will also require updating `RegisteredProperty`?
     * TODO: check `object` module to prevent writing alrdy existing lines.
     * NOTES: maybe it is useless to do so anyways cuz there will always be the explorer.
     */

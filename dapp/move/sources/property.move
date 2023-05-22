@@ -21,8 +21,21 @@ module propertize_addr::property {
 
     #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     struct Property has key {
+        // I wonder why you think you need an ID field? If it is just for identifying the
+        // object, this shouldn't be necessary, you can just use the address of the object
+        // itself for that.
         //ID?
         location: String,
+        // I'm not 100% sure it makes sense for any of these fields to be objects. Objects
+        // make sense when you want to be able to move them around, add / remove them,
+        // transfer them, but idk if that makes sense in this case. Like you can't move
+        // the Bedroom from one house to another hahah.
+        // Similarly I'm not sure score, price, etc. make sense.
+        // So you'd just have something like this:
+        //
+        //   living_area: Option<LivingArea>,
+        //   bedrooms: vector<Bedroom>,
+        //
         living_area: Option<Object<Living_area>>,
         //living_area: Option<Object<Living_area>>,
         //bedrooms: Option<Object<Bedroom>>,
@@ -33,18 +46,22 @@ module propertize_addr::property {
         mutator_ref: token::MutatorRef,
     }
 
+    // I'm not sure I understand the purpose of this Update object. I see you use it
+    // today to update the living area but why not just have a function that updates
+    // the living area value directly.
     #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     struct Update has key {
         value_modifier: u64,
         //event
     }
 
+    // Nit: Living_area -> LivingArea
     #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     struct Living_area has key {
         value: u64,
         update: Option<Object<Update>>,
     }
-    
+
     //#[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     //struct Score has key {
     //    overall_score: u64,
@@ -171,7 +188,7 @@ module propertize_addr::property {
         object::transfer_to_object(owner, living_area, property);
     }
 
-    // public fun property_exclude_living_area() 
+    // public fun property_exclude_living_area()
     // IS IT RELEVANT?
 
     public fun update_living_area(owner: &signer, living_area: Object<Living_area>, update: Object<Update>) acquires Living_area {
@@ -217,6 +234,12 @@ module propertize_addr::property {
     //
     // view functions
     //
+    // So you could have another view function like this:
+    //
+    // #[view]
+    // fun view_property(property: Object<Propery>): Property
+    //
+    // From outside you can then just pass in the address of the object.
     #[view]
     fun view_property(
         creator: address,
@@ -236,5 +259,5 @@ module propertize_addr::property {
     // TODO: add error handling
     // TODO: add missing setters (set_name; set_uri, ...)
     // TODO: add unit testing (mock testing)
-    
+
 }
